@@ -141,14 +141,13 @@ with something like "A walk in the park!" with quotes or e.g. A walk in the park
 ## TODO's, improvements, enhancements
 
 1. More unit tests.
-2. Formal command line interface using Apache CLI or jcommander or the like.
-3. Taking better advantage of Accumulo capabilities such as:
-	-- iterators, e.g. a summing iterator to calculate frequencies of ngram suffixes on the fly
-	-- rehash the schema for better ways to store/retrieve ngrams to minimize scanning of records
-4. Better/more sophisticated handling of:
-	-- punctuation, including sentences such as "A walk in the park," - he said.
-	-- capitalization
-5. Handle multiple corpora (currently only really handles one corpus).
+2. Taking better advantage of Accumulo capabilities such as:
+  1. iterators, e.g. a summing iterator to calculate frequencies of ngram suffixes on the fly
+  2. rehash the schema for better ways to store/retrieve ngrams to minimize scanning of records
+3. Better/more sophisticated handling of:
+  1. punctuation, including sentences such as "A walk in the park," - he said.
+  2. capitalization
+4. Handle multiple corpora (currently only really handles one corpus).
 
 ## Test results
 
