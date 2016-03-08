@@ -48,14 +48,23 @@ OPTIONS:
 
 ## Sample invokation
 
-java com.hexastax.kata14.main.TextMutator test-corpus-1 ./resources/corpora/test-corpus-1.zip 30 6 10 3 accumulo
+```
+java com.hexastax.kata14.main.TextMutator
+    -corpFileLoc ./resources/corpora/test-corpus-1.zip
+    -corpName test-corpus-1
+    -maxSentLen 30
+    -maxNumPars 6
+    -maxNumSentsPerPara 10
+    -ngramCard 3
+    -modelType inmemory
+```
 
 * Will generate a piece of mutated text based on the documents in the test-corpus-1.zip archive.
 * Max sentence length will be 30 words.
 * Max number of paragraphs generated will be 6.
 * Max number of sentences per paragraph will be 10.
 * N-gram cardinality will be 3 i.e. use trigrams.
-* The storage type is set to Accumulo (a mock object which mocks up the Accumulo engine in-memory).
+* The storage type will be set to an in-memory persistence provider.
 
 ## Design notes
 
