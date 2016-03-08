@@ -5,6 +5,9 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.hexastax.kata14.build.ModelBuilder;
 import com.hexastax.kata14.ingest.SentenceType;
 import com.hexastax.kata14.model.Corpus;
@@ -16,6 +19,9 @@ import com.hexastax.kata14.model.Paragraph;
 import com.hexastax.kata14.model.Sentence;
 import com.hexastax.kata14.util.ExtendedRandom;
 import com.hexastax.kata14.util.Kata14Utils;
+import com.hexastax.katas.commons.cmdline.CliToolTemplate;
+import com.hexastax.katas.commons.exception.ConfigurationException;
+import com.hexastax.katas.commons.exception.PersistenceException;
 
 /**
  * Implements the Kata 14 from here: http://codekata.pragprog.com/2007/01/kata_fourteen_t.html.
@@ -27,59 +33,54 @@ import com.hexastax.kata14.util.Kata14Utils;
  */
 public class TextMutator {
 
+  private static final String CLASSNAME = TextMutator.class.getName();
+  
+  private static final Logger log = LogManager.getLogger(CLASSNAME);
+
   private static final String LINE_SEP = System.getProperty("line.separator");
 
-  private String corpusName = null;
+  private String corpusName;
   private int maxSentenceLength = 0;
   private int maxNumParagraphs = 0;
   private int maxNumSentencesPerParagraph = 0;
   private int ngramCardinality = 0;
-  private Model model = null;
-  private ExtendedRandom rand = null;
+  private Model model;
+  private ExtendedRandom rand = new ExtendedRandom();
 
-  /**
-   * Creates the text mutator.
-   * 
-   * @param corpusName
-   *          the name of the text corpus
-   * @param model
-   *          the text model
-   * @param maxSentenceLength
-   *          the maximum sentence length for generated text
-   * @param maxNumParagraphs
-   *          the maximum number of paragraphs to generate
-   * @param maxNumSentencesPerParagraph
-   *          the maximum number of sentences per paragraph
-   * @param ngramCardinality
-   *          the N-gram cardinality e.g. 2
-   */
-  public TextMutator(
-    String corpusName,
-    Model model,
-    int maxSentenceLength,
-    int maxNumParagraphs,
-    int maxNumSentencesPerParagraph,
-    int ngramCardinality) {
+  private CliToolTemplate cliTemplate;
+
+  public TextMutator() {
+    cliTemplate = TextMutatorParams.populate(CliToolTemplate.create(CLASSNAME));
+  }
+
+  public void generateMutation(String[] args, OutputStream out) throws IOException, ConfigurationException, PersistenceException {
+    // Extract all the needed parameters.
+    TextMutatorParams params = TextMutatorParams.fromCommandLine(cliTemplate.processArgs(args));
+
+    log.info(">> Starting text mutation generator...");
+    params.dumpToLog();
+
+    this.corpusName = params.getCorpusName();
+    String corpusFileLocation = params.getCorpusFileLocation();
+    String modelType = params.getModelType();
+    this.maxSentenceLength = params.getMaxSentenceLength();
+    this.maxNumParagraphs = params.getMaxNumParagraphs();
+    this.maxNumSentencesPerParagraph = params.getMaxNumSentencesPerParagraph();
+    this.ngramCardinality = params.getNgramCardinality();
 
     Kata14Utils.validateCardinality(ngramCardinality);
 
-    this.corpusName = corpusName;
-    this.model = model;
-    this.maxSentenceLength = maxSentenceLength;
-    this.maxNumParagraphs = maxNumParagraphs;
-    this.maxNumSentencesPerParagraph = maxNumSentencesPerParagraph;
-    this.ngramCardinality = ngramCardinality;
-    this.rand = new ExtendedRandom();
-  }
+    model = ModelFactory.getModel(modelType);
+    model.initialize();
 
-  /**
-   * Generates a text mutation.
-   * 
-   * @param out
-   *          the output stream to write to
-   * @throws IOException
-   */
-  public void generateMutation(OutputStream out) throws IOException {
+    ModelBuilder builder = new ModelBuilder(corpusName, corpusFileLocation, ngramCardinality, model);
+    builder.buildModel();
+
+    // model.dump(corpusName, System.out);
+    // System.out.println("\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+
+    model.close();
+
     int paraCount = 0;
 
     Corpus corpus = model.getCorpus(corpusName);
@@ -87,12 +88,30 @@ public class TextMutator {
     // TODO don't retrieve full set of docs here, just the randomly picked one in a loop
     List<CorpusDocument> docs = model.getDocuments(corpus);
 
+    out.write(LINE_SEP.getBytes());
+    out.write(LINE_SEP.getBytes());
+    out.write("=====================".getBytes());
+    out.write(LINE_SEP.getBytes());
+    out.write(">> START MUTATED TEXT".getBytes());
+    out.write(LINE_SEP.getBytes());
+    out.write("=====================".getBytes());
+    out.write(LINE_SEP.getBytes());
+    out.write(LINE_SEP.getBytes());
+    
     while (paraCount < maxNumParagraphs) {
       mutateParagraph(out, docs);
       out.write(LINE_SEP.getBytes());
       out.write(LINE_SEP.getBytes());
       paraCount++;
     }
+
+    out.write("===================".getBytes());
+    out.write(LINE_SEP.getBytes());
+    out.write("<< END MUTATED TEXT".getBytes());
+    out.write(LINE_SEP.getBytes());
+    out.write("===================".getBytes());
+    out.write(LINE_SEP.getBytes());
+    out.write(LINE_SEP.getBytes());
   }
 
   private void mutateParagraph(OutputStream out, List<CorpusDocument> docs) throws IOException {
@@ -200,27 +219,14 @@ public class TextMutator {
     out.write(end.getBytes());
   }
 
+  /**
+   * Main.
+   * 
+   * @param args
+   * @throws Exception
+   */
   public static void main(String[] args) throws Exception {
-    final String corpusName = args[0];
-    final String corpusFileLocation = args[1];
-    final int maxSentenceLength = Integer.parseInt(args[2]);
-    final int maxNumParagraphs = Integer.parseInt(args[3]);
-    final int maxNumSentencesPerParagraph = Integer.parseInt(args[4]);
-    final int ngramCardinality = Integer.parseInt(args[5]);
-    final String modelType = args[6];
-
-    Model model = ModelFactory.getModel(modelType);
-    model.initialize();
-
-    ModelBuilder builder = new ModelBuilder(corpusName, corpusFileLocation, ngramCardinality, model);
-    builder.buildModel();
-
-    // model.dump(corpusName, System.out);
-    // System.out.println("\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-
-    model.close();
-
-    TextMutator mutator = new TextMutator(corpusName, model, maxSentenceLength, maxNumParagraphs, maxNumSentencesPerParagraph, ngramCardinality);
-    mutator.generateMutation(System.out);
+    new TextMutator().generateMutation(args, System.out);
+    log.info(">> Text mutation generation finished.");
   }
 }

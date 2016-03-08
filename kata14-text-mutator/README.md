@@ -16,19 +16,35 @@ The training set for the sentence detector and the generated model are included 
 The dg-en-sent.bin is the model.
 
 ## Interface
-Usage:
 
-java com.hexastax.kata14.main.TextMutator <args>, where args are:
+usage: com.hexastax.kata14.main.TextMutator `[-?]` `[-corpFileLoc <corpus file location>]` `[-corpName`
+        `<corpus name>]` `[-h]` `[-help]` `[-maxNumPars <max. total num. paragraphs>]` `[-maxNumSentsPerPara`
+        `<max. num. sentences per paragraph>]` `[-maxSentLen <max. sentence length>]` `[-modelType <ID`
+        `field name>]` `[-ngramCard <N-gram cardinality>]`
 
-1. corpus name - the name of the test corpus, e.g. "MyTestCorpus1".
-2. corpus file location - valid filepath to a zip file with corpus files. Each corpus file must be a plain text file.
-3. max sentence length - the maximum length of a sentence that'll be generated, e.g. 30 (for 30 words).
-4. max num paragraphs - the maximum number of paragraphs to generate, e.g. 5
-5. max num sentences per paragraph - the maximum number of sentences per paragraph to generate, e.g. 5 
-6. ngram cardinality - the size of an n-gram e.g. 3 for a trigram, or 4, 5 etc. This value must be > 1.
-7. model type - the type of model/persistence. Supported values:
-			accumulo - based on MockAccumulo
-			inmemory - simple in-memory map-based store 
+```
+OPTIONS:
+ -?                                                        Print this message.
+ -corpFileLoc <corpus file location>                       [Required]. The path to the corpus
+                                                           directory on disk.
+ -corpName <corpus name>                                   [Required]. The name of the document
+                                                           corpus to use. Provide a user-friendly,
+                                                           unique name for the corpus.
+ -h                                                        Print this message.
+ -help                                                     Print this message.
+ -maxNumPars <max. total num. paragraphs>                  [Required]. The maximum number of
+                                                           paragraphs to generate (positive
+                                                           integer).
+ -maxNumSentsPerPara <max. num. sentences per paragraph>   [Required]. The maximum number of
+                                                           sentences per paragraph to generate
+                                                           (positive integer).
+ -maxSentLen <max. sentence length>                        [Required]. The maximum sentence length
+                                                           (positive integer).
+ -modelType <ID field name>                                [Required]. The type of model to use:
+                                                           inmemory or accumulo.
+ -ngramCard <N-gram cardinality>                           [Required]. The N-gram cardinality/size
+                                                           (positive integer >= 2)
+```
 
 ## Sample invokation
 
