@@ -140,7 +140,9 @@ public class AnagramFinder {
       }
       features.add(featureId);
     }
-    Collections.sort(features);
+    if (!features.isEmpty()) {
+      Collections.sort(features);
+    }
 
     return features;
   }
