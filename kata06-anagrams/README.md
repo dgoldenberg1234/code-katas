@@ -8,5 +8,5 @@ Given a dictionary file which consists of words, one word per line:
 - find the longest anagrams;
 - find the anagrams with the most number of words.
 
-Keep the code complexity down.
+Keep the big-o algo complexity down.
 
